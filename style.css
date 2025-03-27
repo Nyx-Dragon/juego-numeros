@@ -1,5 +1,5 @@
 body {
-    font-family: 'Arial', sans-serif;
+    font-family: "Arial", sans-serif;
     background-color: #f0f8ff; /* Azul cielo claro */
     display: flex;
     justify-content: center;
@@ -53,13 +53,12 @@ label {
 /* Oculta las flechas en input type number (opcional) */
 #guessInput::-webkit-outer-spin-button,
 #guessInput::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+    -webkit-appearance: none;
+    margin: 0;
 }
-#guessInput[type=number] {
-  -moz-appearance: textfield; /* Firefox */
+#guessInput[type="number"] {
+    -moz-appearance: textfield; /* Firefox */
 }
-
 
 #guessButton,
 #playAgainButton {
