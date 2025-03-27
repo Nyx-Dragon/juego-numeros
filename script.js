@@ -105,3 +105,68 @@ playAgainButton.addEventListener('click', startGame);
 
 // --- Iniciar el juego al cargar la página ---
 startGame();
+
+const guessesList = document.getElementById("guessesList");
+// ... (las otras referencias: guessInput, guessButton, etc.)
+
+function startGame() {
+    // ... (código existente de startGame)
+    guessesList.innerHTML = ""; // Vacía la lista de intentos anteriores
+    // ... (resto del código de startGame)
+}
+
+function handleGuess() {
+    // ... (código de validación existente)
+
+    const userGuess = parseInt(userGuessText);
+
+    // VALIDACIÓN (ya existente)
+    if (
+        isNaN(userGuess) ||
+        userGuess < MIN_NUMBER ||
+        userGuess > MAX_NUMBER
+    ) {
+        setMessage(
+            `Introduce un número válido entre ${MIN_NUMBER} y ${MAX_NUMBER}.`,
+            "info"
+        );
+        guessInput.value = "";
+        guessInput.focus();
+        return; // Importante: Salir si la validación falla
+    }
+
+    // Incrementar intentos (ya existente)
+    attempts++;
+    attemptsInfo.textContent = `Intentos: ${attempts}`;
+
+    // --- NUEVO: Añadir intento a la lista visual ---
+    const listItem = document.createElement("li"); // Crea un elemento <li>
+    listItem.textContent = userGuess; // Pone el número dentro del <li>
+    guessesList.appendChild(listItem); // Añade el <li> a la lista <ul>
+    // --- FIN NUEVO ---
+
+    // Comparar el intento (ya existente)
+    if (userGuess === secretNumber) {
+        setMessage(
+            `¡Correcto! 🎉 El número era ${secretNumber}. Lo adivinaste en ${attempts} intentos.`,
+            "correct"
+        );
+        endGame();
+    } else if (userGuess < secretNumber) {
+        setMessage(
+            "¡Demasiado bajo! Intenta un número más alto. 👇",
+            "wrong"
+        );
+    } else {
+        setMessage(
+            "¡Demasiado alto! Intenta un número más bajo. 👆",
+            "wrong"
+        );
+    }
+
+    // Limpiar input si no ha ganado (ya existente)
+    if (userGuess !== secretNumber) {
+        guessInput.value = "";
+        guessInput.focus();
+    }
+}
