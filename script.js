@@ -12,6 +12,7 @@ let attempts;
 let maxAttempts = 10;
 let minNumber = 1;
 let maxNumber = 100;
+let bestScore = localStorage.getItem("bestScore") ? parseInt(localStorage.getItem("bestScore")) : null;
 
 // --- Agregar selector de dificultad ---
 const difficultySelect = document.createElement("select");
@@ -41,6 +42,20 @@ function startGame() {
     playAgainButton.style.display = "none";
     guessesList.innerHTML = "";
     guessInput.focus();
+    
+    // Mostrar mejor puntuación si existe
+    if (bestScore !== null) {
+        const bestScoreInfo = document.getElementById("bestScore");
+        if (!bestScoreInfo) {
+            const newElement = document.createElement("p");
+            newElement.id = "bestScore";
+            newElement.textContent = `Mejor puntuación: ${bestScore} intentos`;
+            document.querySelector(".container").appendChild(newElement);
+        } else {
+            bestScoreInfo.textContent = `Mejor puntuación: ${bestScore} intentos`;
+        }
+    }
+
     console.log(`Pssst... el número secreto es ${secretNumber}`);
 }
 
@@ -88,6 +103,13 @@ function endGame() {
     guessInput.disabled = true;
     guessButton.disabled = true;
     playAgainButton.style.display = "inline-block";
+
+    // Actualizar mejor puntuación si es necesario
+    if (attempts <= maxAttempts && (bestScore === null || attempts < bestScore)) {
+        bestScore = attempts;
+        localStorage.setItem("bestScore", bestScore);
+        setMessage(`¡Nuevo récord! 🎉 Mejor puntuación: ${bestScore} intentos.`, "correct");
+    }
 }
 
 // --- Event Listeners ---
