@@ -5,22 +5,23 @@ const message = document.getElementById("message");
 const attemptsInfo = document.getElementById("attempts");
 const playAgainButton = document.getElementById("playAgainButton");
 const guessesList = document.getElementById("guessesList");
+const highScoreInfo = document.createElement("p");
+document.querySelector(".container").appendChild(highScoreInfo);
 
 // --- Variables del Juego ---
-let secretNumber;
-let attempts;
-let maxAttempts = 10;
-let minNumber = 1;
+let secretNumber, attempts;
+const MAX_ATTEMPTS = 10;
+const MIN_NUMBER = 1;
 let maxNumber = 100;
+let highScore = localStorage.getItem("highScore") ? parseInt(localStorage.getItem("highScore")) : null;
 
-// --- Agregar selector de dificultad ---
+// --- Selector de dificultad ---
 const difficultySelect = document.createElement("select");
 difficultySelect.innerHTML = `
     <option value="50">Fácil (1-50)</option>
-    <option value="100"selected>Medio (1-100)</option>
+    <option value="100" selected>Medio (1-100)</option>
     <option value="200">Difícil (1-200)</option>
 `;
-// --- Tambien se puede agregar directamente en HTML ---
 document.querySelector(".container").insertBefore(difficultySelect, document.querySelector("h1").nextSibling);
 
 difficultySelect.addEventListener("change", () => {
@@ -30,53 +31,31 @@ difficultySelect.addEventListener("change", () => {
 
 // --- Funciones ---
 function startGame() {
-    secretNumber = Math.floor(Math.random() * maxNumber) + minNumber;
+    secretNumber = Math.floor(Math.random() * maxNumber) + MIN_NUMBER;
     attempts = 0;
-    message.textContent = `He pensado en un número entre ${minNumber} y ${maxNumber}. ¿Puedes adivinar cuál es?`;
-    message.className = "message";
-    attemptsInfo.textContent = `Intentos: 0 / ${maxAttempts}`;
-    guessInput.value = "";
-    guessInput.disabled = false;
-    guessButton.disabled = false;
-    playAgainButton.style.display = "none";
-    guessesList.innerHTML = "";
-    guessInput.focus();
+    setMessage(`He pensado en un número entre ${MIN_NUMBER} y ${maxNumber}. ¿Puedes adivinar cuál es?`, "message");
+    attemptsInfo.textContent = `Intentos: 0 / ${MAX_ATTEMPTS}`;
+    resetGame();
+    updateHighScoreDisplay();
     console.log(`Pssst... el número secreto es ${secretNumber}`);
 }
 
 function handleGuess() {
     const userGuess = parseInt(guessInput.value);
-    if (isNaN(userGuess) || userGuess < minNumber || userGuess > maxNumber) {
-        setMessage(`Introduce un número válido entre ${minNumber} y ${maxNumber}.`, "info");
-        guessInput.value = "";
-        guessInput.focus();
-        return;
+    if (isNaN(userGuess) || userGuess < MIN_NUMBER || userGuess > maxNumber) {
+        return setMessage(`Introduce un número válido entre ${MIN_NUMBER} y ${maxNumber}.`, "info");
     }
-    
+
     attempts++;
-    attemptsInfo.textContent = `Intentos: ${attempts} / ${maxAttempts}`;
-    const listItem = document.createElement("li");
-    listItem.textContent = userGuess;
-    guessesList.appendChild(listItem);
+    attemptsInfo.textContent = `Intentos: ${attempts} / ${MAX_ATTEMPTS}`;
+    guessesList.innerHTML += `<li>${userGuess}</li>`;
+
+    if (userGuess === secretNumber) return endGame(`¡Correcto! 🎉 El número era ${secretNumber}.`, "correct");
+    if (attempts >= MAX_ATTEMPTS) return endGame(`¡Has perdido! 😞 El número era ${secretNumber}.`, "wrong");
     
-    if (userGuess === secretNumber) {
-        setMessage(`¡Correcto! 🎉 El número era ${secretNumber}. Lo adivinaste en ${attempts} intentos.`, "correct");
-        endGame();
-    } else if (userGuess < secretNumber) {
-        setMessage("¡Demasiado bajo! Intenta un número más alto. 👇", "wrong");
-    } else {
-        setMessage("¡Demasiado alto! Intenta un número más bajo. 👆", "wrong");
-    }
-    
-    if (attempts > maxAttempts) {
-        setMessage(`¡Has perdido! 😞 El número era ${secretNumber}.`, "wrong");
-        endGame();
-    }
-    
-    if (userGuess !== secretNumber) {
-        guessInput.value = "";
-        guessInput.focus();
-    }
+    setMessage(userGuess < secretNumber ? "¡Demasiado bajo! 👇" : "¡Demasiado alto! 👆", "wrong");
+    guessInput.value = "";
+    guessInput.focus();
 }
 
 function setMessage(msg, type) {
@@ -84,20 +63,36 @@ function setMessage(msg, type) {
     message.className = `message ${type}`;
 }
 
-function endGame() {
-    guessInput.disabled = true;
-    guessButton.disabled = true;
+function endGame(msg, type) {
+    setMessage(msg, type);
+    guessInput.disabled = guessButton.disabled = true;
     playAgainButton.style.display = "inline-block";
+    checkHighScore();
+}
+
+function checkHighScore() {
+    if (highScore === null || attempts < highScore) {
+        highScore = attempts;
+        localStorage.setItem("highScore", highScore);
+        updateHighScoreDisplay();
+    }
+}
+
+function updateHighScoreDisplay() {
+    highScoreInfo.textContent = highScore ? `Mejor puntuación: ${highScore} intentos 🎯` : "Aún no hay mejor puntuación";
+}
+
+function resetGame() {
+    guessInput.disabled = guessButton.disabled = false;
+    playAgainButton.style.display = "none";
+    guessesList.innerHTML = "";
+    guessInput.value = "";
+    guessInput.focus();
 }
 
 // --- Event Listeners ---
 guessButton.addEventListener("click", handleGuess);
-guessInput.addEventListener("keyup", function(event) {
-    if (event.key === "Enter") {
-        event.preventDefault();
-        handleGuess();
-    }
-});
+guessInput.addEventListener("keyup", (e) => e.key === "Enter" && handleGuess());
 playAgainButton.addEventListener("click", startGame);
 
 // --- Iniciar el juego ---
