@@ -7,20 +7,18 @@ const playAgainButton = document.getElementById("playAgainButton");
 const guessesList = document.getElementById("guessesList");
 
 // --- Variables del Juego ---
-let secretNumber;
-let attempts;
-let maxAttempts = 10;
+let secretNumber, attempts;
+const maxAttempts = 10;
 let minNumber = 1;
 let maxNumber = 100;
 
-// --- Agregar selector de dificultad ---
+// --- Selector de dificultad ---
 const difficultySelect = document.createElement("select");
 difficultySelect.innerHTML = `
     <option value="50">Fácil (1-50)</option>
-    <option value="100"selected>Medio (1-100)</option>
+    <option value="100" selected>Medio (1-100)</option>
     <option value="200">Difícil (1-200)</option>
 `;
-// --- Tambien se puede agregar directamente en HTML ---
 document.querySelector(".container").insertBefore(difficultySelect, document.querySelector("h1").nextSibling);
 
 difficultySelect.addEventListener("change", () => {
@@ -32,72 +30,57 @@ difficultySelect.addEventListener("change", () => {
 function startGame() {
     secretNumber = Math.floor(Math.random() * maxNumber) + minNumber;
     attempts = 0;
-    message.textContent = `He pensado en un número entre ${minNumber} y ${maxNumber}. ¿Puedes adivinar cuál es?`;
-    message.className = "message";
+    updateUI(`He pensado en un número entre ${minNumber} y ${maxNumber}. ¿Puedes adivinar cuál es?`, "message");
     attemptsInfo.textContent = `Intentos: 0 / ${maxAttempts}`;
-    guessInput.value = "";
-    guessInput.disabled = false;
-    guessButton.disabled = false;
-    playAgainButton.style.display = "none";
-    guessesList.innerHTML = "";
-    guessInput.focus();
+    resetGame();
     console.log(`Pssst... el número secreto es ${secretNumber}`);
 }
 
 function handleGuess() {
     const userGuess = parseInt(guessInput.value);
     if (isNaN(userGuess) || userGuess < minNumber || userGuess > maxNumber) {
-        setMessage(`Introduce un número válido entre ${minNumber} y ${maxNumber}.`, "info");
-        guessInput.value = "";
-        guessInput.focus();
-        return;
+        return updateUI(`Introduce un número válido entre ${minNumber} y ${maxNumber}.`, "info");
     }
-    
+
     attempts++;
     attemptsInfo.textContent = `Intentos: ${attempts} / ${maxAttempts}`;
-    const listItem = document.createElement("li");
-    listItem.textContent = userGuess;
-    guessesList.appendChild(listItem);
-    
+    guessesList.innerHTML += `<li>${userGuess}</li>`;
+
     if (userGuess === secretNumber) {
-        setMessage(`¡Correcto! 🎉 El número era ${secretNumber}. Lo adivinaste en ${attempts} intentos.`, "correct");
-        endGame();
-    } else if (userGuess < secretNumber) {
-        setMessage("¡Demasiado bajo! Intenta un número más alto. 👇", "wrong");
-    } else {
-        setMessage("¡Demasiado alto! Intenta un número más bajo. 👆", "wrong");
+        return endGame(`¡Correcto! 🎉 El número era ${secretNumber}. Lo adivinaste en ${attempts} intentos.`, "correct");
     }
     
-    if (attempts > maxAttempts) {
-        setMessage(`¡Has perdido! 😞 El número era ${secretNumber}.`, "wrong");
-        endGame();
+    if (attempts >= maxAttempts) {
+        return endGame(`¡Has perdido! 😞 El número era ${secretNumber}.`, "wrong");
     }
-    
-    if (userGuess !== secretNumber) {
-        guessInput.value = "";
-        guessInput.focus();
-    }
+
+    updateUI(userGuess < secretNumber ? "¡Demasiado bajo! 👇" : "¡Demasiado alto! 👆", "wrong");
+    guessInput.value = "";
+    guessInput.focus();
 }
 
-function setMessage(msg, type) {
+function updateUI(msg, type) {
     message.textContent = msg;
     message.className = `message ${type}`;
 }
 
-function endGame() {
-    guessInput.disabled = true;
-    guessButton.disabled = true;
+function endGame(msg, type) {
+    updateUI(msg, type);
+    guessInput.disabled = guessButton.disabled = true;
     playAgainButton.style.display = "inline-block";
+}
+
+function resetGame() {
+    guessInput.disabled = guessButton.disabled = false;
+    playAgainButton.style.display = "none";
+    guessesList.innerHTML = "";
+    guessInput.value = "";
+    guessInput.focus();
 }
 
 // --- Event Listeners ---
 guessButton.addEventListener("click", handleGuess);
-guessInput.addEventListener("keyup", function(event) {
-    if (event.key === "Enter") {
-        event.preventDefault();
-        handleGuess();
-    }
-});
+guessInput.addEventListener("keyup", (e) => e.key === "Enter" && handleGuess());
 playAgainButton.addEventListener("click", startGame);
 
 // --- Iniciar el juego ---
