@@ -1,4 +1,4 @@
-// --- Elementos del DOM ---
+// Obtención de elementos del DOM
 const guessInput = document.getElementById("guessInput");
 const guessButton = document.getElementById("guessButton");
 const message = document.getElementById("message");
@@ -6,7 +6,7 @@ const attemptsInfo = document.getElementById("attempts");
 const playAgainButton = document.getElementById("playAgainButton");
 const guessesList = document.getElementById("guessesList");
 
-// --- Variables del Juego ---
+// Variables del juego
 let secretNumber;
 let attempts;
 let maxAttempts = 10;
@@ -14,22 +14,23 @@ let minNumber = 1;
 let maxNumber = 100;
 let bestScore = localStorage.getItem("bestScore") ? parseInt(localStorage.getItem("bestScore")) : null;
 
-// --- Agregar selector de dificultad ---
-const difficultySelect = document.createElement("select");
-difficultySelect.innerHTML = `
-    <option value="50">Fácil (1-50)</option>
-    <option value="100"selected>Medio (1-100)</option>
-    <option value="200">Difícil (1-200)</option>
-`;
-// --- Tambien se puede agregar directamente en HTML ---
-document.querySelector(".container").insertBefore(difficultySelect, document.querySelector("h1").nextSibling);
-
-difficultySelect.addEventListener("change", () => {
-    maxNumber = parseInt(difficultySelect.value);
-    startGame();
+// Creación del selector de dificultad
+document.addEventListener("DOMContentLoaded", () => {
+    const difficultySelect = document.createElement("select");
+    difficultySelect.innerHTML = `
+        <option value="50">Fácil (1-50)</option>
+        <option value="100" selected>Medio (1-100)</option>
+        <option value="200">Difícil (1-200)</option>
+    `;
+    document.querySelector(".container").insertBefore(difficultySelect, document.querySelector("h1").nextSibling);
+    
+    difficultySelect.addEventListener("change", () => {
+        maxNumber = parseInt(difficultySelect.value);
+        startGame();
+    });
 });
 
-// --- Funciones ---
+// Función para iniciar el juego
 function startGame() {
     secretNumber = Math.floor(Math.random() * maxNumber) + minNumber;
     attempts = 0;
@@ -43,7 +44,6 @@ function startGame() {
     guessesList.innerHTML = "";
     guessInput.focus();
     
-    // Mostrar mejor puntuación si existe
     if (bestScore !== null) {
         const bestScoreInfo = document.getElementById("bestScore");
         if (!bestScoreInfo) {
@@ -55,10 +55,11 @@ function startGame() {
             bestScoreInfo.textContent = `Mejor puntuación: ${bestScore} intentos`;
         }
     }
-
+    
     console.log(`Pssst... el número secreto es ${secretNumber}`);
 }
 
+// Función para manejar el intento del usuario
 function handleGuess() {
     const userGuess = parseInt(guessInput.value);
     if (isNaN(userGuess) || userGuess < minNumber || userGuess > maxNumber) {
@@ -83,7 +84,7 @@ function handleGuess() {
         setMessage("¡Demasiado alto! Intenta un número más bajo. 👆", "wrong");
     }
     
-    if (attempts > maxAttempts) {
+    if (attempts >= maxAttempts) {
         setMessage(`¡Has perdido! 😞 El número era ${secretNumber}.`, "wrong");
         endGame();
     }
@@ -94,17 +95,18 @@ function handleGuess() {
     }
 }
 
+// Función para mostrar mensajes de estado en el juego
 function setMessage(msg, type) {
     message.textContent = msg;
     message.className = `message ${type}`;
 }
 
+// Función para finalizar el juego
 function endGame() {
     guessInput.disabled = true;
     guessButton.disabled = true;
     playAgainButton.style.display = "inline-block";
 
-    // Actualizar mejor puntuación si es necesario
     if (attempts <= maxAttempts && (bestScore === null || attempts < bestScore)) {
         bestScore = attempts;
         localStorage.setItem("bestScore", bestScore);
@@ -112,7 +114,7 @@ function endGame() {
     }
 }
 
-// --- Event Listeners ---
+// Event listeners para botones y teclado
 guessButton.addEventListener("click", handleGuess);
 guessInput.addEventListener("keyup", function(event) {
     if (event.key === "Enter") {
@@ -122,5 +124,5 @@ guessInput.addEventListener("keyup", function(event) {
 });
 playAgainButton.addEventListener("click", startGame);
 
-// --- Iniciar el juego ---
+// Iniciar el juego al cargar la página
 startGame();
